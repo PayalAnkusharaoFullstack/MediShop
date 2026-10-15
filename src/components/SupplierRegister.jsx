@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function SupplierRegister({ onRegister, onShowLogin }) {
+export default function SupplierRegister({ onShowLogin }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

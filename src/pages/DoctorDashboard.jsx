@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import DashboardHero from "../components/dashboard/DashboardHero";
+import DashboardSummary from "../components/dashboard/DashboardSummary";
 
 function isExpired(expiryDate) {
   if (!expiryDate) return false;
@@ -155,7 +157,7 @@ export default function DoctorDashboard() {
     }
 
     const prescription = {
-      id: Date.now(),
+      id: globalThis.crypto.randomUUID(),
       customerId: selectedQuery.customerId,
       customerName: selectedQuery.customerName,
       queryId: selectedQuery.id,
@@ -232,31 +234,27 @@ export default function DoctorDashboard() {
   return (
     <div className="doctor-dashboard">
       <div className="container py-4">
-        <div className="doctor-hero">
-          <div>
-            <p className="dashboard-kicker">DOCTOR PANEL</p>
-            <h2>Doctor Dashboard</h2>
-            <p className="dashboard-subtitle">Signed in as {doctor.name}. Create prescriptions from approved medicines.</p>
-          </div>
-          <button className="btn btn-outline-light dashboard-logout" onClick={handleDoctorLogout}>
-            Logout
-          </button>
-        </div>
+        <DashboardHero
+          variant="doctor"
+          kicker="DOCTOR PANEL"
+          title="Doctor Dashboard"
+          subtitle={`Signed in as ${doctor.name}. Create prescriptions from approved medicines.`}
+          action={(
+            <button className="btn btn-outline-light dashboard-logout" onClick={handleDoctorLogout}>
+              Logout
+            </button>
+          )}
+        />
 
-        <div className="doctor-summary">
-          <div className="summary-card summary-primary">
-            <span>Available medicines</span>
-            <strong>{medicines.length}</strong>
-          </div>
-          <div className="summary-card summary-warning">
-            <span>Pending queries</span>
-            <strong>{pendingQueries.length}</strong>
-          </div>
-          <div className="summary-card summary-success">
-            <span>Prescriptions</span>
-            <strong>{doctorPrescriptions.length}</strong>
-          </div>
-        </div>
+        <DashboardSummary
+          variant="doctor"
+          label="Doctor summary"
+          items={[
+            { label: "Available medicines", value: medicines.length, tone: "primary" },
+            { label: "Pending queries", value: pendingQueries.length, tone: "warning" },
+            { label: "Prescriptions", value: doctorPrescriptions.length, tone: "success" },
+          ]}
+        />
 
         <div className="doctor-layout">
           <div className="doctor-panel">

@@ -12,6 +12,15 @@ function getMedicines() {
   }
 }
 
+function getStoredArray(key) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+}
+
 function getExpiryInfo(expiryDate) {
   if (!expiryDate) return { status: "missing", daysRemaining: null };
 
@@ -27,8 +36,14 @@ function getExpiryInfo(expiryDate) {
   return { status: "valid", daysRemaining };
 }
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ superAdminMode = false }) {
   const [medicines, setMedicines] = useState(getMedicines);
+  const [orders] = useState(() => getStoredArray("orders"));
+  const [customers] = useState(() => getStoredArray("customers"));
+  const [prescriptions] = useState(() => getStoredArray("doctorPrescriptions"));
+  const [admins, setAdmins] = useState(() => getStoredArray("admins"));
+  const [adminForm, setAdminForm] = useState({ name: "", email: "" });
+  const [adminMessage, setAdminMessage] = useState("");
   const [activeFilter, setActiveFilter] = useState(filters[0]);
   const [search, setSearch] = useState("");
   const hour = new Date().getHours();
@@ -76,23 +91,137 @@ export default function AdminDashboard() {
     localStorage.setItem("medicines", JSON.stringify(updatedMedicines));
   };
 
+  const handleAddAdmin = (event) => {
+    event.preventDefault();
+    const email = adminForm.email.trim().toLowerCase();
+
+    if (admins.some((admin) => admin.email?.toLowerCase() === email)) {
+      setAdminMessage("An admin account already uses this email.");
+      return;
+    }
+
+    const newAdmin = {
+      id: Date.now(),
+      name: adminForm.name.trim(),
+      email,
+      password: "2222",
+      createdAt: new Date().toISOString(),
+    };
+    const updatedAdmins = [...admins, newAdmin];
+    setAdmins(updatedAdmins);
+    localStorage.setItem("admins", JSON.stringify(updatedAdmins));
+    setAdminForm({ name: "", email: "" });
+    setAdminMessage(`Admin account created for ${newAdmin.name}. Password: 2222`);
+  };
+
   const lowStockMedicines = medicines
     .filter(isLowStock)
     .slice(0, 4);
+  const orderRevenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
 
   return (
-    <main className="admin-dashboard">
+    <main className={`admin-dashboard${superAdminMode ? " super-admin-dashboard" : ""}`}>
       <div className="admin-page-header">
         <div>
-          <p className="admin-eyebrow">MEDISHOP / OPERATIONS</p>
-          <h1>{greeting}, Admin</h1>
-          <p className="admin-subtitle">Here is what is happening across your medicine catalog today.</p>
+          <p className="admin-eyebrow">MEDISHOP / {superAdminMode ? "SUPER ADMIN" : "OPERATIONS"}</p>
+          <h1>{greeting}, {superAdminMode ? "Super Admin" : "Admin"}</h1>
+          <p className="admin-subtitle">{superAdminMode ? "Platform reports, medicine approvals, and stock oversight." : "Here is what is happening across your medicine catalog today."}</p>
         </div>
         <div className="admin-date">
           <span className="admin-date-mark" aria-hidden="true">◷</span>
           <span>{new Intl.DateTimeFormat("en", { weekday: "long", month: "long", day: "numeric" }).format(new Date())}</span>
         </div>
       </div>
+
+      {superAdminMode && (
+        <section className="super-admin-reports" aria-labelledby="super-admin-reports-title">
+          <div className="super-admin-reports-heading">
+            <div>
+              <p className="admin-eyebrow">PLATFORM OVERVIEW</p>
+              <h2 id="super-admin-reports-title">Reports</h2>
+            </div>
+          </div>
+          <div className="super-admin-report-grid">
+            <div><span>Total orders</span><strong>{orders.length}</strong></div>
+            <div><span>Order value</span><strong>₹{orderRevenue.toFixed(2)}</strong></div>
+            <div><span>Customer accounts</span><strong>{customers.length}</strong></div>
+            <div><span>Prescriptions</span><strong>{prescriptions.length}</strong></div>
+          </div>
+          <div className="super-admin-recent-orders">
+            <h3>Recent orders</h3>
+            {orders.length === 0 ? (
+              <p>No customer orders have been placed yet.</p>
+            ) : (
+              <div className="admin-table-wrap">
+                <table className="admin-table super-admin-orders-table">
+                  <thead><tr><th>CUSTOMER</th><th>MEDICINE</th><th>QUANTITY</th><th>VALUE</th><th>DATE</th></tr></thead>
+                  <tbody>
+                    {[...orders].slice(-5).reverse().map((order) => (
+                      <tr key={order.id}>
+                        <td>{order.customerName || "Customer"}</td>
+                        <td>{order.medicineName}</td>
+                        <td>{order.quantity}</td>
+                        <td>₹{Number(order.total || 0).toFixed(2)}</td>
+                        <td>{order.orderDate || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {superAdminMode && (
+        <section className="super-admin-manage" aria-labelledby="super-admin-admins-title">
+          <div className="super-admin-manage-heading">
+            <div>
+              <p className="admin-eyebrow">ACCESS MANAGEMENT</p>
+              <h2 id="super-admin-admins-title">Admin accounts</h2>
+            </div>
+            <span className="super-admin-default-password">Default password <strong>2222</strong></span>
+          </div>
+
+          <form className="super-admin-add-admin-form" onSubmit={handleAddAdmin}>
+            <label>
+              <span>Admin name</span>
+              <input
+                value={adminForm.name}
+                onChange={(event) => setAdminForm({ ...adminForm, name: event.target.value })}
+                placeholder="Enter admin name"
+                required
+              />
+            </label>
+            <label>
+              <span>Email address</span>
+              <input
+                type="email"
+                value={adminForm.email}
+                onChange={(event) => setAdminForm({ ...adminForm, email: event.target.value })}
+                placeholder="admin@example.com"
+                required
+              />
+            </label>
+            <button type="submit">Add admin</button>
+          </form>
+
+          {adminMessage && <p className="super-admin-admin-message" role="status">{adminMessage}</p>}
+
+          {admins.length === 0 ? (
+            <p className="super-admin-empty-admins">No admin accounts have been added yet.</p>
+          ) : (
+            <ul className="super-admin-admin-list">
+              {admins.map((admin) => (
+                <li key={admin.id}>
+                  <div><strong>{admin.name}</strong><span>{admin.email}</span></div>
+                  <span className="super-admin-account-password">Password: 2222</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       {expiryWarnings.length > 0 && (
         <section className="admin-expiry-alert" role="alert" aria-live="polite">

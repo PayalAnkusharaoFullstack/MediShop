@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DashboardHero from "../components/dashboard/DashboardHero";
 
 function readArray(key) {
   try {
@@ -300,16 +301,17 @@ export default function CustomerDashboard() {
   return (
     <div className="customer-dashboard">
       <div className="container py-4">
-        <div className="customer-hero">
-          <div>
-            <p className="dashboard-kicker">CUSTOMER STORE</p>
-            <h2>Customer Dashboard</h2>
-            <p className="dashboard-subtitle">Welcome, {customer.name}. Browse medicines and contact your doctor.</p>
-          </div>
-          <button className="btn btn-outline-light dashboard-logout" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
+        <DashboardHero
+          variant="customer"
+          kicker="CUSTOMER STORE"
+          title="Customer Dashboard"
+          subtitle={`Welcome, ${customer.name}. Browse medicines and contact your doctor.`}
+          action={(
+            <button className="btn btn-outline-light dashboard-logout" onClick={handleLogout}>
+              Logout
+            </button>
+          )}
+        />
 
         <section className="customer-prescriptions" aria-labelledby="doctor-query-heading">
           <div className="customer-section-title">

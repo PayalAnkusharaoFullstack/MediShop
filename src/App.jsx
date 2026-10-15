@@ -3,6 +3,8 @@ import SupplierDashboard from "./pages/SupplierDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import DoctorDashboard from "./pages/DoctorDashboard";
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+import MRDashboard from "./pages/MRDashboard";
 import Navbar from "./components/Navbar";
 
 function RouteContent() {
@@ -16,6 +18,8 @@ function RouteContent() {
           <Route path="/supplier" element={<SupplierDashboard />} />
           <Route path="/doctor" element={<DoctorDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/super-admin" element={<SuperAdminDashboard />} />
+          <Route path="/mr" element={<MRDashboard />} />
           <Route path="/customer" element={<CustomerDashboard />} />
         </Routes>
       </div>

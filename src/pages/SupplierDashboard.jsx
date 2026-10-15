@@ -1,6 +1,8 @@
 import { useState } from "react";
 import SupplierRegister from "../components/SupplierRegister";
 import SupplierLogin from "../components/SupplierLogin";
+import DashboardHero from "../components/dashboard/DashboardHero";
+import DashboardSummary from "../components/dashboard/DashboardSummary";
 
 function getTodayDateValue() {
   const today = new Date();
@@ -74,7 +76,6 @@ export default function SupplierDashboard() {
   if (!supplier) {
     return showRegister ? (
       <SupplierRegister
-        onRegister={handleLogin}
         onShowLogin={() => setShowRegister(false)}
       />
     ) : (
@@ -91,32 +92,27 @@ export default function SupplierDashboard() {
 
   return (
     <div className="supplier-dashboard container py-4">
-      <div className="dashboard-hero">
-        <div>
-          <p className="dashboard-kicker">SUPPLIER PORTAL</p>
-          <h2>Supplier Dashboard</h2>
-          <p className="dashboard-subtitle">Welcome back, {supplier.name}</p>
-        </div>
+      <DashboardHero
+        variant="dashboard"
+        kicker="SUPPLIER PORTAL"
+        title="Supplier Dashboard"
+        subtitle={`Welcome back, ${supplier.name}`}
+        action={(
+          <button className="btn btn-outline-light dashboard-logout" onClick={handleLogout}>
+            Logout
+          </button>
+        )}
+      />
 
-        <button className="btn btn-outline-light dashboard-logout" onClick={handleLogout}>
-          Logout
-        </button>
-      </div>
-
-      <div className="dashboard-summary">
-        <div className="summary-card summary-primary">
-          <span>Total submissions</span>
-          <strong>{myMedicines.length}</strong>
-        </div>
-        <div className="summary-card summary-warning">
-          <span>Pending</span>
-          <strong>{myMedicines.filter((item) => item.status === "Pending").length}</strong>
-        </div>
-        <div className="summary-card summary-success">
-          <span>Approved</span>
-          <strong>{myMedicines.filter((item) => item.status === "Approved").length}</strong>
-        </div>
-      </div>
+      <DashboardSummary
+        variant="dashboard"
+        label="Supplier summary"
+        items={[
+          { label: "Total submissions", value: myMedicines.length, tone: "primary" },
+          { label: "Pending", value: myMedicines.filter((item) => item.status === "Pending").length, tone: "warning" },
+          { label: "Approved", value: myMedicines.filter((item) => item.status === "Approved").length, tone: "success" },
+        ]}
+      />
 
       <div className="card dashboard-panel shadow-sm border-0 mb-4">
         <div className="card-header dashboard-card-header">Add Medicine</div>

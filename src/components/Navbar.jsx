@@ -22,6 +22,14 @@ export default function Navbar() {
             Admin
           </NavLink>
 
+          <NavLink className="nav-link" to="/super-admin">
+            Super Admin
+          </NavLink>
+
+          <NavLink className="nav-link" to="/mr">
+            MR
+          </NavLink>
+
           <NavLink className="nav-link" to="/customer">
             Customer
           </NavLink>
