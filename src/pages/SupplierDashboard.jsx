@@ -1,6 +1,5 @@
 import { useState } from "react";
-import SupplierRegister from "../components/SupplierRegister";
-import SupplierLogin from "../components/SupplierLogin";
+import { Navigate } from "react-router-dom";
 import DashboardHero from "../components/dashboard/DashboardHero";
 import DashboardSummary from "../components/dashboard/DashboardSummary";
 
@@ -15,7 +14,6 @@ export default function SupplierDashboard() {
     JSON.parse(localStorage.getItem("loggedInSupplier") || "null")
   );
 
-  const [showRegister, setShowRegister] = useState(false);
   const [medicines, setMedicines] = useState(() =>
     JSON.parse(localStorage.getItem("medicines") || "[]")
   );
@@ -28,15 +26,9 @@ export default function SupplierDashboard() {
     description: "",
   });
 
-  const handleLogin = (user) => {
-    localStorage.setItem("loggedInSupplier", JSON.stringify(user));
-    setSupplier(user);
-  };
-
   const handleLogout = () => {
     localStorage.removeItem("loggedInSupplier");
     setSupplier(null);
-    setShowRegister(false);
   };
 
   const handleChange = (e) => {
@@ -74,16 +66,7 @@ export default function SupplierDashboard() {
   };
 
   if (!supplier) {
-    return showRegister ? (
-      <SupplierRegister
-        onShowLogin={() => setShowRegister(false)}
-      />
-    ) : (
-      <SupplierLogin
-        onLogin={handleLogin}
-        onShowRegister={() => setShowRegister(true)}
-      />
-    );
+    return <Navigate to="/?role=supplier" replace />;
   }
 
   const myMedicines = medicines.filter(

@@ -10,29 +10,7 @@ export default function Navbar() {
         </Link>
 
         <div className="navbar-nav ms-auto">
-          <NavLink className="nav-link" to="/supplier">
-            Supplier
-          </NavLink>
-
-          <NavLink className="nav-link" to="/doctor">
-            Doctor
-          </NavLink>
-
-          <NavLink className="nav-link" to="/admin">
-            Admin
-          </NavLink>
-
-          <NavLink className="nav-link" to="/super-admin">
-            Super Admin
-          </NavLink>
-
-          <NavLink className="nav-link" to="/mr">
-            MR
-          </NavLink>
-
-          <NavLink className="nav-link" to="/customer">
-            Customer
-          </NavLink>
+          <NavLink className="nav-link" to="/">Sign in / Register</NavLink>
         </div>
       </div>
     </nav>

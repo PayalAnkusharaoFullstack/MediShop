@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Navigate } from "react-router-dom";
 import "./AdminDashboard.css";
 
 const filters = ["All medicines", "Needs review", "Approved", "Rejected"];
@@ -21,16 +22,16 @@ function getStoredArray(key) {
   }
 }
 
-function getAdminSession(admins) {
+function getAccountSession(accounts, sessionKey) {
   try {
-    const session = JSON.parse(localStorage.getItem("loggedInAdmin") || "null");
+    const session = JSON.parse(localStorage.getItem(sessionKey) || "null");
     if (!session || typeof session !== "object") return null;
 
-    const admin = admins.find((item) =>
+    const account = accounts.find((item) =>
       String(item.id) === String(session.id)
       && String(item.email || "").toLowerCase() === String(session.email || "").toLowerCase()
     );
-    return admin ? { id: admin.id, name: admin.name, email: admin.email } : null;
+    return account ? { id: account.id, name: account.name, email: account.email } : null;
   } catch {
     return null;
   }
@@ -57,11 +58,13 @@ export default function AdminDashboard({ superAdminMode = false }) {
   const [customers] = useState(() => getStoredArray("customers"));
   const [prescriptions] = useState(() => getStoredArray("doctorPrescriptions"));
   const [admins, setAdmins] = useState(() => getStoredArray("admins"));
-  const [loggedInAdmin, setLoggedInAdmin] = useState(() => getAdminSession(getStoredArray("admins")));
+  const sessionKey = superAdminMode ? "loggedInSuperAdmin" : "loggedInAdmin";
+  const accountKey = superAdminMode ? "superAdmins" : "admins";
+  const [loggedInAdmin, setLoggedInAdmin] = useState(() =>
+    getAccountSession(getStoredArray(accountKey), sessionKey)
+  );
   const [adminForm, setAdminForm] = useState({ name: "", email: "", password: "" });
   const [adminMessage, setAdminMessage] = useState("");
-  const [loginError, setLoginError] = useState("");
-  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [activeFilter, setActiveFilter] = useState(filters[0]);
   const [search, setSearch] = useState("");
   const hour = new Date().getHours();
@@ -137,25 +140,8 @@ export default function AdminDashboard({ superAdminMode = false }) {
     setAdminMessage(`Admin account created for ${newAdmin.name}.`);
   };
 
-  const handleAdminLogin = (event) => {
-    event.preventDefault();
-    const email = loginForm.email.trim().toLowerCase();
-    const admin = admins.find((item) => item.email?.toLowerCase() === email && item.password === loginForm.password);
-
-    if (!admin) {
-      setLoginError("Email or password is incorrect.");
-      return;
-    }
-
-    const session = { id: admin.id, name: admin.name, email: admin.email };
-    localStorage.setItem("loggedInAdmin", JSON.stringify(session));
-    setLoggedInAdmin(session);
-    setLoginForm({ email: "", password: "" });
-    setLoginError("");
-  };
-
   const handleAdminLogout = () => {
-    localStorage.removeItem("loggedInAdmin");
+    localStorage.removeItem(sessionKey);
     setLoggedInAdmin(null);
   };
 
@@ -164,38 +150,8 @@ export default function AdminDashboard({ superAdminMode = false }) {
     .slice(0, 4);
   const orderRevenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
 
-  if (!superAdminMode && !loggedInAdmin) {
-    return (
-      <main className="admin-login-page">
-        <section className="admin-login-card" aria-labelledby="admin-login-title">
-          <p className="admin-eyebrow">MEDISHOP / ADMIN PORTAL</p>
-          <h1 id="admin-login-title">Admin login</h1>
-          <p>Sign in with the email and password provided by your super admin.</p>
-          <form onSubmit={handleAdminLogin}>
-            <label htmlFor="admin-login-email">Email address</label>
-            <input
-              id="admin-login-email"
-              type="email"
-              autoComplete="username"
-              value={loginForm.email}
-              onChange={(event) => setLoginForm({ ...loginForm, email: event.target.value })}
-              required
-            />
-            <label htmlFor="admin-login-password">Password</label>
-            <input
-              id="admin-login-password"
-              type="password"
-              autoComplete="current-password"
-              value={loginForm.password}
-              onChange={(event) => setLoginForm({ ...loginForm, password: event.target.value })}
-              required
-            />
-            {loginError && <p className="admin-login-error" role="alert">{loginError}</p>}
-            <button type="submit">Sign in</button>
-          </form>
-        </section>
-      </main>
-    );
+  if (!loggedInAdmin) {
+    return <Navigate to={`/?role=${superAdminMode ? "super-admin" : "admin"}`} replace />;
   }
 
   return (
@@ -211,11 +167,9 @@ export default function AdminDashboard({ superAdminMode = false }) {
             <span className="admin-date-mark" aria-hidden="true">◷</span>
             <span>{new Intl.DateTimeFormat("en", { weekday: "long", month: "long", day: "numeric" }).format(new Date())}</span>
           </div>
-          {!superAdminMode && (
-            <button type="button" className="admin-logout-button" onClick={handleAdminLogout}>
-              Log out
-            </button>
-          )}
+          <button type="button" className="admin-logout-button" onClick={handleAdminLogout}>
+            Log out
+          </button>
         </div>
       </div>
 

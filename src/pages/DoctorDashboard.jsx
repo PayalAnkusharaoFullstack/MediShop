@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Navigate } from "react-router-dom";
 import DashboardHero from "../components/dashboard/DashboardHero";
 import DashboardSummary from "../components/dashboard/DashboardSummary";
 
@@ -75,9 +76,6 @@ export default function DoctorDashboard() {
   const [prescriptions, setPrescriptions] = useState(getDoctorPrescriptions);
   const [queries, setQueries] = useState(getDoctorQueries);
   const [search, setSearch] = useState("");
-  const [loginName, setLoginName] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
   const [selectedQueryId, setSelectedQueryId] = useState("");
   const [selectedMedicineId, setSelectedMedicineId] = useState(() => {
     const approved = getApprovedMedicines();
@@ -104,27 +102,6 @@ export default function DoctorDashboard() {
   const doctorQueries = queries.filter((item) => String(item.doctorId) === String(doctor?.id));
   const pendingQueries = doctorQueries.filter((item) => item.status === "Pending");
   const selectedQuery = pendingQueries.find((item) => String(item.id) === selectedQueryId);
-
-  const handleDoctorLogin = (event) => {
-    event.preventDefault();
-
-    if (!loginName.trim() || loginPassword !== "2222") {
-      setLoginError("Enter your name and the correct shared password.");
-      return;
-    }
-
-    const cleanName = loginName.trim();
-    const doctorList = getDoctorDirectory();
-    const existingDoctor = doctorList.find((item) => item.name?.toLowerCase() === cleanName.toLowerCase());
-    const loggedInDoctor = existingDoctor || { id: cleanName.toLowerCase(), name: cleanName };
-    if (!existingDoctor) {
-      localStorage.setItem("doctors", JSON.stringify([...doctorList, loggedInDoctor]));
-    }
-    localStorage.setItem("loggedInDoctor", JSON.stringify(loggedInDoctor));
-    setDoctor(loggedInDoctor);
-    setLoginPassword("");
-    setLoginError("");
-  };
 
   const handleDoctorLogout = () => {
     localStorage.removeItem("loggedInDoctor");
@@ -193,42 +170,7 @@ export default function DoctorDashboard() {
   };
 
   if (!doctor) {
-    return (
-      <div className="doctor-dashboard">
-        <div className="container py-4">
-          <section className="doctor-login-card">
-            <p className="dashboard-kicker">MEDISHOP CLINIC</p>
-            <h2>Doctor Sign In</h2>
-            <p>Sign in with your name and the shared doctor password.</p>
-            <form onSubmit={handleDoctorLogin}>
-              <label className="form-label" htmlFor="doctor-login-name">Doctor name</label>
-              <input
-                id="doctor-login-name"
-                className="form-control mb-3"
-                value={loginName}
-                onChange={(event) => setLoginName(event.target.value)}
-                placeholder="Enter your name"
-                autoComplete="username"
-                required
-              />
-              <label className="form-label" htmlFor="doctor-login-password">Password</label>
-              <input
-                id="doctor-login-password"
-                className="form-control mb-3"
-                type="password"
-                value={loginPassword}
-                onChange={(event) => setLoginPassword(event.target.value)}
-                placeholder="Enter shared password"
-                autoComplete="current-password"
-                required
-              />
-              {loginError && <p className="doctor-login-error" role="alert">{loginError}</p>}
-              <button className="btn doctor-prescribe-btn w-100" type="submit">Sign in</button>
-            </form>
-          </section>
-        </div>
-      </div>
-    );
+    return <Navigate to="/?role=doctor" replace />;
   }
 
   return (

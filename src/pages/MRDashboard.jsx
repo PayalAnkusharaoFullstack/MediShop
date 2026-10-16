@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Navigate } from "react-router-dom";
 
 function readArray(key) {
   try {
@@ -16,6 +17,13 @@ function getToday() {
 }
 
 export default function MRDashboard() {
+  const [representative, setRepresentative] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("loggedInMR") || "null");
+    } catch {
+      return null;
+    }
+  });
   const [doctors] = useState(() => readArray("doctors"));
   const [medicines] = useState(() => readArray("medicines").filter((item) => item.status === "Approved"));
   const [visits, setVisits] = useState(() => readArray("mrVisits"));
@@ -51,15 +59,31 @@ export default function MRDashboard() {
 
   const todayVisits = visits.filter((visit) => visit.visitDate === getToday()).length;
 
+  if (!representative) {
+    return <Navigate to="/?role=mr" replace />;
+  }
+
   return (
     <main className="mr-dashboard">
       <header className="mr-hero">
         <div>
           <p className="mr-eyebrow">MEDISHOP / FIELD TEAM</p>
           <h1>Medical Representative</h1>
-          <p>Plan doctor visits and keep product discussions organized.</p>
+          <p>Welcome, {representative.name}. Plan doctor visits and keep product discussions organized.</p>
         </div>
-        <span className="mr-hero-mark" aria-hidden="true">MR</span>
+        <div className="mr-hero-actions">
+          <span className="mr-hero-mark" aria-hidden="true">MR</span>
+          <button
+            type="button"
+            className="btn btn-outline-light"
+            onClick={() => {
+              localStorage.removeItem("loggedInMR");
+              setRepresentative(null);
+            }}
+          >
+            Log out
+          </button>
+        </div>
       </header>
 
       <section className="mr-summary" aria-label="Visit and product overview">

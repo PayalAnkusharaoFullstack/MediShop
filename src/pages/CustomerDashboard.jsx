@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Navigate } from "react-router-dom";
 import DashboardHero from "../components/dashboard/DashboardHero";
 
 function readArray(key) {
@@ -29,9 +30,6 @@ function isExpired(expiryDate) {
 
 export default function CustomerDashboard() {
   const [customer, setCustomer] = useState(readCustomerSession);
-  const [registerMode, setRegisterMode] = useState(false);
-  const [authForm, setAuthForm] = useState({ name: "", email: "", password: "" });
-  const [authError, setAuthError] = useState("");
   const [medicines] = useState(() => readArray("medicines").filter((medicine) =>
     medicine.status === "Approved" && !isExpired(medicine.expiryDate)
   ));
@@ -47,48 +45,10 @@ export default function CustomerDashboard() {
   const [queryText, setQueryText] = useState("");
   const [quantities, setQuantities] = useState({});
 
-  const handleAuthSubmit = (event) => {
-    event.preventDefault();
-    const email = authForm.email.trim().toLowerCase();
-    const customers = readArray("customers");
-
-    if (registerMode) {
-      if (customers.some((item) => item.email === email)) {
-        setAuthError("An account with this email already exists.");
-        return;
-      }
-
-      const account = {
-        id: Date.now(),
-        name: authForm.name.trim(),
-        email,
-        password: authForm.password,
-      };
-      localStorage.setItem("customers", JSON.stringify([...customers, account]));
-      localStorage.setItem("loggedInCustomer", JSON.stringify(account));
-      setCustomer(account);
-      setCart(readArray(`customerCart:${account.id}`));
-      setAuthError("");
-      return;
-    }
-
-    const account = customers.find((item) => item.email === email && item.password === authForm.password);
-    if (!account) {
-      setAuthError("Email or password is incorrect.");
-      return;
-    }
-
-    localStorage.setItem("loggedInCustomer", JSON.stringify(account));
-    setCustomer(account);
-    setCart(readArray(`customerCart:${account.id}`));
-    setAuthError("");
-  };
-
   const handleLogout = () => {
     localStorage.removeItem("loggedInCustomer");
     setCustomer(null);
     setCart([]);
-    setAuthForm({ name: "", email: "", password: "" });
   };
 
   const handleSendQuery = (event) => {
@@ -236,66 +196,7 @@ export default function CustomerDashboard() {
     || medicines.find((medicine) => medicine.name === prescription.medicineName);
 
   if (!customer) {
-    return (
-      <div className="customer-dashboard">
-        <div className="container py-4">
-          <section className="customer-auth-card">
-            <p className="dashboard-kicker">MEDISHOP ACCOUNT</p>
-            <h2>{registerMode ? "Create Customer Account" : "Customer Sign In"}</h2>
-            <form onSubmit={handleAuthSubmit}>
-              {registerMode && (
-                <>
-                  <label className="form-label" htmlFor="customer-name">Full name</label>
-                  <input
-                    id="customer-name"
-                    className="form-control mb-3"
-                    value={authForm.name}
-                    onChange={(event) => setAuthForm({ ...authForm, name: event.target.value })}
-                    autoComplete="name"
-                    required
-                  />
-                </>
-              )}
-              <label className="form-label" htmlFor="customer-email">Email</label>
-              <input
-                id="customer-email"
-                type="email"
-                className="form-control mb-3"
-                value={authForm.email}
-                onChange={(event) => setAuthForm({ ...authForm, email: event.target.value })}
-                autoComplete="email"
-                required
-              />
-              <label className="form-label" htmlFor="customer-password">Password</label>
-              <input
-                id="customer-password"
-                type="password"
-                className="form-control mb-3"
-                value={authForm.password}
-                onChange={(event) => setAuthForm({ ...authForm, password: event.target.value })}
-                autoComplete={registerMode ? "new-password" : "current-password"}
-                minLength={6}
-                required
-              />
-              {authError && <p className="customer-auth-error" role="alert">{authError}</p>}
-              <button className="btn customer-buy-btn w-100" type="submit">
-                {registerMode ? "Create account" : "Sign in"}
-              </button>
-            </form>
-            <button
-              className="btn btn-link customer-auth-toggle"
-              type="button"
-              onClick={() => {
-                setRegisterMode(!registerMode);
-                setAuthError("");
-              }}
-            >
-              {registerMode ? "Already have an account? Sign in" : "New customer? Create an account"}
-            </button>
-          </section>
-        </div>
-      </div>
-    );
+    return <Navigate to="/?role=customer" replace />;
   }
 
   return (

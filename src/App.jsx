@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import AuthPage from "./pages/AuthPage";
 import SupplierDashboard from "./pages/SupplierDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import CustomerDashboard from "./pages/CustomerDashboard";
@@ -14,13 +15,14 @@ function RouteContent() {
     <main className="page-content">
       <div key={location.pathname} className="route-stage">
         <Routes>
-          <Route path="/" element={<Navigate to="/supplier" />} />
+          <Route path="/" element={<AuthPage />} />
           <Route path="/supplier" element={<SupplierDashboard />} />
           <Route path="/doctor" element={<DoctorDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/super-admin" element={<SuperAdminDashboard />} />
           <Route path="/mr" element={<MRDashboard />} />
           <Route path="/customer" element={<CustomerDashboard />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </main>
