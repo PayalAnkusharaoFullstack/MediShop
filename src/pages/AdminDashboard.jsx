@@ -21,6 +21,21 @@ function getStoredArray(key) {
   }
 }
 
+function getAdminSession(admins) {
+  try {
+    const session = JSON.parse(localStorage.getItem("loggedInAdmin") || "null");
+    if (!session || typeof session !== "object") return null;
+
+    const admin = admins.find((item) =>
+      String(item.id) === String(session.id)
+      && String(item.email || "").toLowerCase() === String(session.email || "").toLowerCase()
+    );
+    return admin ? { id: admin.id, name: admin.name, email: admin.email } : null;
+  } catch {
+    return null;
+  }
+}
+
 function getExpiryInfo(expiryDate) {
   if (!expiryDate) return { status: "missing", daysRemaining: null };
 
@@ -42,8 +57,11 @@ export default function AdminDashboard({ superAdminMode = false }) {
   const [customers] = useState(() => getStoredArray("customers"));
   const [prescriptions] = useState(() => getStoredArray("doctorPrescriptions"));
   const [admins, setAdmins] = useState(() => getStoredArray("admins"));
-  const [adminForm, setAdminForm] = useState({ name: "", email: "" });
+  const [loggedInAdmin, setLoggedInAdmin] = useState(() => getAdminSession(getStoredArray("admins")));
+  const [adminForm, setAdminForm] = useState({ name: "", email: "", password: "" });
   const [adminMessage, setAdminMessage] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [activeFilter, setActiveFilter] = useState(filters[0]);
   const [search, setSearch] = useState("");
   const hour = new Date().getHours();
@@ -93,6 +111,11 @@ export default function AdminDashboard({ superAdminMode = false }) {
 
   const handleAddAdmin = (event) => {
     event.preventDefault();
+    if (!superAdminMode) {
+      setAdminMessage("Only a super admin can add admin accounts.");
+      return;
+    }
+
     const email = adminForm.email.trim().toLowerCase();
 
     if (admins.some((admin) => admin.email?.toLowerCase() === email)) {
@@ -104,20 +127,76 @@ export default function AdminDashboard({ superAdminMode = false }) {
       id: Date.now(),
       name: adminForm.name.trim(),
       email,
-      password: "2222",
+      password: adminForm.password,
       createdAt: new Date().toISOString(),
     };
     const updatedAdmins = [...admins, newAdmin];
     setAdmins(updatedAdmins);
     localStorage.setItem("admins", JSON.stringify(updatedAdmins));
-    setAdminForm({ name: "", email: "" });
-    setAdminMessage(`Admin account created for ${newAdmin.name}. Password: 2222`);
+    setAdminForm({ name: "", email: "", password: "" });
+    setAdminMessage(`Admin account created for ${newAdmin.name}.`);
+  };
+
+  const handleAdminLogin = (event) => {
+    event.preventDefault();
+    const email = loginForm.email.trim().toLowerCase();
+    const admin = admins.find((item) => item.email?.toLowerCase() === email && item.password === loginForm.password);
+
+    if (!admin) {
+      setLoginError("Email or password is incorrect.");
+      return;
+    }
+
+    const session = { id: admin.id, name: admin.name, email: admin.email };
+    localStorage.setItem("loggedInAdmin", JSON.stringify(session));
+    setLoggedInAdmin(session);
+    setLoginForm({ email: "", password: "" });
+    setLoginError("");
+  };
+
+  const handleAdminLogout = () => {
+    localStorage.removeItem("loggedInAdmin");
+    setLoggedInAdmin(null);
   };
 
   const lowStockMedicines = medicines
     .filter(isLowStock)
     .slice(0, 4);
   const orderRevenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+
+  if (!superAdminMode && !loggedInAdmin) {
+    return (
+      <main className="admin-login-page">
+        <section className="admin-login-card" aria-labelledby="admin-login-title">
+          <p className="admin-eyebrow">MEDISHOP / ADMIN PORTAL</p>
+          <h1 id="admin-login-title">Admin login</h1>
+          <p>Sign in with the email and password provided by your super admin.</p>
+          <form onSubmit={handleAdminLogin}>
+            <label htmlFor="admin-login-email">Email address</label>
+            <input
+              id="admin-login-email"
+              type="email"
+              autoComplete="username"
+              value={loginForm.email}
+              onChange={(event) => setLoginForm({ ...loginForm, email: event.target.value })}
+              required
+            />
+            <label htmlFor="admin-login-password">Password</label>
+            <input
+              id="admin-login-password"
+              type="password"
+              autoComplete="current-password"
+              value={loginForm.password}
+              onChange={(event) => setLoginForm({ ...loginForm, password: event.target.value })}
+              required
+            />
+            {loginError && <p className="admin-login-error" role="alert">{loginError}</p>}
+            <button type="submit">Sign in</button>
+          </form>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className={`admin-dashboard${superAdminMode ? " super-admin-dashboard" : ""}`}>
@@ -127,9 +206,16 @@ export default function AdminDashboard({ superAdminMode = false }) {
           <h1>{greeting}, {superAdminMode ? "Super Admin" : "Admin"}</h1>
           <p className="admin-subtitle">{superAdminMode ? "Platform reports, medicine approvals, and stock oversight." : "Here is what is happening across your medicine catalog today."}</p>
         </div>
-        <div className="admin-date">
-          <span className="admin-date-mark" aria-hidden="true">◷</span>
-          <span>{new Intl.DateTimeFormat("en", { weekday: "long", month: "long", day: "numeric" }).format(new Date())}</span>
+        <div className="admin-header-actions">
+          <div className="admin-date">
+            <span className="admin-date-mark" aria-hidden="true">◷</span>
+            <span>{new Intl.DateTimeFormat("en", { weekday: "long", month: "long", day: "numeric" }).format(new Date())}</span>
+          </div>
+          {!superAdminMode && (
+            <button type="button" className="admin-logout-button" onClick={handleAdminLogout}>
+              Log out
+            </button>
+          )}
         </div>
       </div>
 
@@ -180,7 +266,7 @@ export default function AdminDashboard({ superAdminMode = false }) {
               <p className="admin-eyebrow">ACCESS MANAGEMENT</p>
               <h2 id="super-admin-admins-title">Admin accounts</h2>
             </div>
-            <span className="super-admin-default-password">Default password <strong>2222</strong></span>
+            <span className="super-admin-default-password">Set a unique password for each admin account.</span>
           </div>
 
           <form className="super-admin-add-admin-form" onSubmit={handleAddAdmin}>
@@ -203,6 +289,18 @@ export default function AdminDashboard({ superAdminMode = false }) {
                 required
               />
             </label>
+            <label>
+              <span>Password</span>
+              <input
+                type="password"
+                minLength="6"
+                autoComplete="new-password"
+                value={adminForm.password}
+                onChange={(event) => setAdminForm({ ...adminForm, password: event.target.value })}
+                placeholder="At least 6 characters"
+                required
+              />
+            </label>
             <button type="submit">Add admin</button>
           </form>
 
@@ -215,7 +313,6 @@ export default function AdminDashboard({ superAdminMode = false }) {
               {admins.map((admin) => (
                 <li key={admin.id}>
                   <div><strong>{admin.name}</strong><span>{admin.email}</span></div>
-                  <span className="super-admin-account-password">Password: 2222</span>
                 </li>
               ))}
             </ul>

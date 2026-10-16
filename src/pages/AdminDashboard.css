@@ -68,6 +68,101 @@
   line-height: 1;
 }
 
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-logout-button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--admin-line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--admin-green);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-login-page {
+  display: grid;
+  min-height: 65vh;
+  place-items: center;
+  padding: 36px 18px;
+  color: #173d3f;
+}
+
+.admin-login-card {
+  width: min(100%, 430px);
+  padding: 30px;
+  border: 1px solid #dfe9df;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 14px 36px rgba(19, 58, 59, 0.08);
+}
+
+.admin-login-card h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 30px;
+  font-weight: 500;
+}
+
+.admin-login-card > p:not(.admin-eyebrow) {
+  margin: 8px 0 22px;
+  color: #647a78;
+  font-size: 13px;
+}
+
+.admin-login-card form {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-login-card label {
+  margin-top: 7px;
+  color: #52675f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-login-card input {
+  min-height: 42px;
+  padding: 8px 11px;
+  border: 1px solid #dfe9df;
+  border-radius: 6px;
+  color: #173d3f;
+  font: inherit;
+  font-size: 13px;
+}
+
+.admin-login-card input:focus {
+  border-color: #51a28d;
+  outline: 3px solid rgba(53, 165, 139, 0.14);
+}
+
+.admin-login-card button {
+  min-height: 42px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 6px;
+  background: #176b68;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-login-error {
+  margin: 4px 0 0;
+  color: #a95142;
+  font-size: 12px;
+}
+
 .admin-expiry-alert {
   margin: 0 0 22px;
   padding: 17px 20px;
@@ -193,7 +288,7 @@
 
 .super-admin-add-admin-form {
   display: grid;
-  grid-template-columns: 1fr 1.2fr auto;
+  grid-template-columns: 1fr 1.2fr 1fr auto;
   align-items: end;
   gap: 12px;
   margin-top: 18px;
@@ -213,8 +308,6 @@
 .super-admin-admin-list li > div { display: grid; gap: 3px; min-width: 0; }
 .super-admin-admin-list strong { color: var(--admin-ink); font-size: 12px; }
 .super-admin-admin-list li > div span { overflow-wrap: anywhere; color: #71817b; font-size: 11px; }
-.super-admin-account-password { flex: 0 0 auto; color: #627c3e; font-size: 11px; font-weight: 700; }
-
 .super-admin-report-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -546,6 +639,7 @@
 @media (max-width: 760px) {
   .admin-dashboard { padding: 28px 18px 42px; }
   .admin-page-header { align-items: flex-start; flex-direction: column; margin-bottom: 23px; }
+  .admin-header-actions { align-items: flex-start; flex-wrap: wrap; }
   .admin-date { align-self: flex-start; }
   .admin-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .admin-stat { min-height: 126px; padding: 15px; }
